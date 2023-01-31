@@ -5,13 +5,13 @@ import Contact from '../contacts/model';
 
 export default {
     async getUser(
-        req:Request<{},{},{ email:string }>,
+        req:Request<{userId:string},{},{}>,
         res:Response,
         next:NextFunction
     ){
         try {
-            const { email } = req.body;
-            const user = await User.findOne({ email });
+            const { userId } = req.params;
+            const user = await User.findById(userId);
             if(!user) return res.status(400).json({message:'User not found.'});
 
             res.status(200).json({user})
@@ -19,29 +19,49 @@ export default {
             next(error);
         }
     },
-    async addContactToUser(
-        req:Request<{},{},{ userId:string, contactId:string }>,
+    async getContactInfo(
+        req:Request<{email:string},{},{}>,
         res:Response,
         next:NextFunction
     ){
         try {
-            const { userId, contactId } = req.body;
-            const userInfo = await User.findById(contactId);
-            if(!userInfo) return res.status(500).json({message:'Internal server error.'});
+            const { email } = req.params;
+            const user = await User.findOne({ email });
+            if(!user) return res.status(400).json({message:'User not found.'});
+            const contactInfo = {
+                id:user._id,
+                name:user.name,
+                email:user.email
+            };
+
+            res.status(200).json(contactInfo);
+        } catch (error) {
+            next(error);
+        }
+    },
+    async addContactToUser(
+        req:Request<{},{},{ userId:string, contactEmail:string }>,
+        res:Response,
+        next:NextFunction
+    ){
+        try {
+            const { userId, contactEmail } = req.body;
+            const user = await User.findOne({ email:contactEmail });
+            if(!user) return res.status(500).json({message:'Internal server error.'});
 
             const userContacts = await User.findById(userId).populate('contacts');
 
             if(userContacts){
                 let contacts = userContacts.contacts;
-                const foundContact = contacts.find(contact => contact._id.toString() === contactId);
+                const foundContact = contacts.find(contact => contact._id.toString() === user._id.toString());
                 if(foundContact) return res.status(200).json({message:'This person is already in your contact list.'})
             };
 
             const newContact = new Contact({
-                _id:contactId,
+                _id:user._id,
                 userId,
-                name:userInfo.name,
-                email:userInfo.email
+                name:user.name,
+                email:user.email
             });
 
             await newContact.save();
