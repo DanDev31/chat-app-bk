@@ -20,21 +20,30 @@ export default {
         }
     },
     async getContactInfo(
-        req:Request<{email:string},{},{}>,
+        req:Request<{},{userId:string, email:string},{}>,
         res:Response,
         next:NextFunction
     ){
+        
         try {
-            const { email } = req.params;
+            const { userId, email } = req.query;
             const user = await User.findOne({ email });
             if(!user) return res.status(400).json({message:'User not found.'});
+
+            const userContacts = await User.findById(userId).populate('contacts');
+
+            if(userContacts){
+                let contacts = userContacts.contacts;
+                const foundContact = contacts.find(contact => contact._id.toString() === user._id.toString());
+                if(foundContact) return res.status(200).json({success:false, message:'This person is already in your contact list.'})
+            };
+
             const contactInfo = {
                 id:user._id,
                 name:user.name,
                 email:user.email
             };
-
-            res.status(200).json(contactInfo);
+            res.status(200).json({success:true, contactInfo});
         } catch (error) {
             next(error);
         }
@@ -54,7 +63,7 @@ export default {
             if(userContacts){
                 let contacts = userContacts.contacts;
                 const foundContact = contacts.find(contact => contact._id.toString() === user._id.toString());
-                if(foundContact) return res.status(200).json({message:'This person is already in your contact list.'})
+                if(foundContact) return res.status(200).json({success:false, message:'This person is already in your contact list.'})
             };
 
             const newContact = new Contact({
@@ -71,7 +80,7 @@ export default {
                 { new:true }
             );
 
-            res.status(200).json({message:'Contact added successfully'});
+            res.status(200).json({success:true, message:'Congrats! You have a new contact now.'});
         } catch (error) {
             next(error);
         }
