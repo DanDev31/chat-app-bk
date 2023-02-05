@@ -28,7 +28,7 @@ export default {
         try {
             const { userId, email } = req.query;
             const user = await User.findOne({ email });
-            if(!user) return res.status(400).json({message:'User not found.'});
+            if(!user) return res.status(200).json({message:'No results for this user.'});
 
             const userContacts = await User.findById(userId).populate('contacts');
 

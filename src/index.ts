@@ -4,6 +4,7 @@ import auth from "./api/auth/routes";
 import routes from "./routes";
 import http from "http";
 import config from "./config";
+import ioSocket from "./socket/index";
 import { mongoDB } from "./db/mongodb";
 import { verifyToken } from "./middlewares/verifyToken";
 import { Server as SocketServer } from "socket.io";
@@ -19,21 +20,8 @@ const port = config.server.port || 3001;
 
 // Creating server for socket io
 const httpServer = http.createServer(app);
-
-const io = new SocketServer(httpServer, {
-    cors:{
-        origin:"http://127.0.0.1:5173"
-    }
-});
-
-
-io.on("connection", (socket) => {
-    console.log("A user connected");
-    socket.on('message', (message) => {
-        console.log({user:socket.id, message});
-    });
-});
-
+//Initialize socket server
+ioSocket(httpServer);
 mongoDB();
 app.use("/auth", auth)
 // app.use("/api", verifyToken, routes);
