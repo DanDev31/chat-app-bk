@@ -58,21 +58,22 @@ export default {
             !isValidPassword && res.status(400).json({message:"Wrong password!"})
 
             const userContacts = await User.findById(user._id).populate('contacts', 'name email');
-
+            const { accessToken } = await services.createTokens({id:user._id, email:user.email});
+            
             const userInfo = {
                 id:user._id,
                 name:user.name,
                 email:user.email,
-                contacts: userContacts?.contacts || []
-            }
+                contacts: userContacts?.contacts || [],
+                accessToken
+            };
            
-            const { accessToken } = await services.createTokens(userInfo);
 
             res.cookie("access_token", accessToken, {
                 httpOnly:true,
                 secure:true
             });
-            res.status(200).json({userInfo, accessToken});
+            res.status(200).json(userInfo);
 
         } catch (error) {
             next(error);

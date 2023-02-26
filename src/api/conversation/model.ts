@@ -5,12 +5,9 @@ const conversationSchema = new Schema({
         type:Schema.Types.ObjectId,
         ref:'User'
     },
-    message:[
-        {
-            type:Schema.Types.ObjectId,
-            ref:'Message'
-        }
-    ]
+    contactId:{
+        type:Schema.Types.ObjectId
+    }
 },
 {
     timestamps:true

@@ -1,19 +1,20 @@
 import mongoose, { Schema } from "mongoose";
 
-interface IMessage{
-    userId:Schema.Types.ObjectId,
-    conversation:Schema.Types.ObjectId;
-};
-
-const messageSchema = new Schema<IMessage>({
+const messageSchema = new Schema({
     userId:{
         type:Schema.Types.ObjectId,
         ref:'User'
     },
-    conversation:{
+    conversationId:{
         type:Schema.Types.ObjectId,
         ref:'Conversation'
-    } 
+    },
+    text:{
+        type:String,
+    },
+    wasReaded:{
+       type:Boolean 
+    }
 },
 {
     timestamps:true
